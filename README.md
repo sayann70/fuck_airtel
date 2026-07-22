@@ -2,7 +2,7 @@
 
 > **"Unlimited" data but only on the device we choose? Nah.**
 
-A PowerShell script that makes tethered laptop traffic appear as native mobile traffic to Airtel's hotspot detection system — so you can actually use the unlimited 5G data you're paying for.
+Scripts for **Windows (PowerShell)** and **Linux (Bash)** that make tethered laptop traffic appear as native mobile traffic to Airtel's hotspot detection system — so you can actually use the unlimited 5G data you're paying for.
 
 **By [sayann70](https://github.com/sayann70) — MIT License**
 
@@ -182,19 +182,52 @@ AFTER (This script applied):
 
 ## Usage
 
-### Requirements
+### 🪟 Windows
+
+**Requirements:**
 - Windows 10/11
 - Administrator privileges
 - Connected to your Airtel hotspot
 
-### Apply Bypass
-Double-click `RUN_AS_ADMIN.bat` — it auto-elevates and applies all changes live. **No reboot needed.**
+| Action | How |
+|---|---|
+| Apply bypass | Double-click `RUN_AS_ADMIN.bat` |
+| Verify it's working | Double-click `scripts\VERIFY.bat` |
+| Undo everything | Double-click `UNDO_BYPASS.bat` |
 
-### Verify It's Working
-Run `scripts\VERIFY.bat` — checks all 18 settings and reports PASS/FAIL for each.
+All changes are applied live. **No reboot needed.**
 
-### Undo Everything
-Double-click `UNDO_BYPASS.bat` — restores all original settings from backup. **No reboot needed.**
+---
+
+### 🐧 Linux
+
+**Requirements:**
+- Any modern Linux distro (Ubuntu, Debian, Fedora, Arch, etc.)
+- `sudo` / root access
+- `iptables` + `ip6tables` installed (standard on almost all distros)
+- Connected to your Airtel hotspot via Wi-Fi
+
+```bash
+# 1. Make scripts executable (first time only)
+chmod +x run_bypass.sh undo_bypass.sh scripts/bypass.sh scripts/verify.sh scripts/check_state.sh
+
+# 2. Check current state before applying
+sudo bash scripts/check_state.sh
+
+# 3. Apply the bypass
+sudo ./run_bypass.sh
+
+# 4. Verify everything is active
+sudo bash scripts/verify.sh
+
+# 5. Undo when you're done (e.g. back on regular Wi-Fi)
+sudo ./undo_bypass.sh
+```
+
+> **Note on persistence:** TTL and port range changes are written to `/etc/sysctl.d/99-airtel-bypass.conf`
+> so they survive reboots. The undo script removes this file automatically.
+> iptables rules are NOT persistent across reboots by default — re-run `run_bypass.sh` after a reboot
+> if you need them again, or install `iptables-persistent` and let the undo script handle it.
 
 ---
 
@@ -202,15 +235,20 @@ Double-click `UNDO_BYPASS.bat` — restores all original settings from backup. *
 
 ```
 fuck_airtel/
-├── RUN_AS_ADMIN.bat        ← Apply bypass (double-click)
-├── UNDO_BYPASS.bat         ← Revert everything (double-click)
+├── RUN_AS_ADMIN.bat        ← [Windows] Apply bypass (double-click)
+├── UNDO_BYPASS.bat         ← [Windows] Revert everything (double-click)
+├── run_bypass.sh           ← [Linux]   Apply bypass (auto-elevates via sudo)
+├── undo_bypass.sh          ← [Linux]   Revert everything
 ├── README.md
 └── scripts/
-    ├── bypass.ps1          ← Core logic (all 8 detection vectors)
-    ├── verify.ps1          ← Verification — checks all 18 settings
-    ├── VERIFY.bat          ← Run verification (double-click)
-    ├── check_state.ps1     ← Dump current network state for debugging
-    └── fix_encoding.ps1    ← UTF-8 BOM fixer (dev utility)
+    ├── bypass.ps1          ← [Windows] Core logic (all 8 detection vectors)
+    ├── verify.ps1          ← [Windows] Verification — checks all 18 settings
+    ├── VERIFY.bat          ← [Windows] Run verification (double-click)
+    ├── check_state.ps1     ← [Windows] Dump current network state for debugging
+    ├── fix_encoding.ps1    ← [Windows] UTF-8 BOM fixer (dev utility)
+    ├── bypass.sh           ← [Linux]   Core logic (all 8 detection vectors)
+    ├── verify.sh           ← [Linux]   Verification — checks all settings
+    └── check_state.sh      ← [Linux]   Dump current network state for debugging
 ```
 
 ---
@@ -253,9 +291,9 @@ This backup includes your original TTL, DNS servers, MTU, and TCP settings. The 
 
 ## Disclaimer
 
-This script modifies your local Windows network stack settings only. It does not modify any Airtel infrastructure, does not involve packet injection, and does not intercept any traffic. It makes your device *look like* a mobile device to your carrier's passive observation systems, which is comparable to changing your browser's User-Agent.
+These scripts modify your **local** network stack settings only (TTL, MTU, firewall rules, DNS). They do not modify any Airtel infrastructure, do not involve packet injection, and do not intercept any traffic. They make your device *look like* a mobile device to your carrier's passive observation systems, which is comparable to changing your browser's User-Agent.
 
-Use this at your own risk. The author is not responsible for any throttling, account suspension, or consequences that may arise from use of this script.
+Use at your own risk. The author is not responsible for any throttling, account suspension, or consequences that may arise from use of these scripts.
 
 ---
 
